@@ -2,3 +2,26 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - cluster-issuers.yaml
+  - podmonitor.yaml
+
+patches:
+  - target:
+      kind: PodMonitor
+      name: podmonitor
+    patch: |-
+      - op: add
+        path: /metadata/namespace
+        value: monitoring
+
+configMapGenerator:
+  - name: flux-grafana-dashboards
+    files:
+      - dashboards/control-plane.json
+      - dashboards/cluster.json
+      - dashboards/logs.json
+    options:
+      labels:
+        grafana_dashboard: "1"
+        app.kubernetes.io/part-of: flux
+        app.kubernetes.io/component: monitoring
+        namespace: monitoring
